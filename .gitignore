@@ -1,0 +1,4 @@
+node_modules/
+days.ics
+.DS_Store
+*.log
