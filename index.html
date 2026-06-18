@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Days Calendar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>📅 Commemorative Days Calendar</h1>
+
+    <div class="calendar-header">
+
+        <div class="calendar-nav">
+            <button id="prevMonth" aria-label="Previous month">
+                ⬅️ Previous
+            </button>
+
+            <span id="currentMonthDisplay" style="font-weight: bold; min-width: 150px; text-align: center;">
+                Loading...
+            </span>
+
+            <button id="nextMonth" aria-label="Next month">
+                Next ➡️
+            </button>
+        </div>
+
+        <div class="month-year-selector">
+            <label for="monthSelect">Month:</label>
+
+            <select id="monthSelect" aria-label="Select month">
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+            </select>
+
+            <label for="yearSelect">Year:</label>
+
+            <select id="yearSelect" aria-label="Select year">
+                <!-- Will be populated by JavaScript -->
+            </select>
+
+            <button id="goToMonth">Go</button>
+        </div>
+
+    </div>
+
+    <div id="calendarContainer" role="grid" aria-label="Calendar">
+        <!-- Calendar will be rendered here -->
+    </div>
+
+    <!-- Modal for event details -->
+    <div id="eventModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+        <div class="modal-content">
+
+            <button class="modal-close" id="modalClose" aria-label="Close">
+                &times;
+            </button>
+
+            <h3 id="modalTitle">Event Details</h3>
+
+            <div class="modal-body" id="modalBody">
+                Loading...
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
