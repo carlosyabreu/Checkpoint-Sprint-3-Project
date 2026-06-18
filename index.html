@@ -1,28 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-    
 
 <head>
-            
     <meta charset="UTF-8">
-            
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Days Calendar</title>
-            
+    <title>Days Calendar</title>
+
     <script type="module" src="web.mjs"></script>
+
     <style>
-        /* Basic styling for accessibility and structure */
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #FFFFFF;
-            color: #1A1A1A;
         }
 
-        main {
-            display: block;
+        /* Skip link */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+
+        .skip-link:focus {
+            left: 10px;
+            top: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            padding: 10px;
+            z-index: 9999;
         }
 
         .calendar-header {
@@ -44,107 +51,75 @@
             padding: 8px 16px;
             cursor: pointer;
             font-size: 16px;
-            background-color: #2563EB;
-            color: #FFFFFF;
+            background-color: #011201;
+            color: #ffffff;
             border: none;
             border-radius: 4px;
-            min-height: 44px;
-            min-width: 44px;
         }
 
         .calendar-nav button:hover {
-            background-color: #1D4ED8;
-        }
-
-        .calendar-nav button:focus-visible {
-            outline: 3px solid #2563EB;
-            outline-offset: 2px;
-        }
-
-        .calendar-nav button:active {
-            background-color: #1E40AF;
-        }
-
-        #currentMonthDisplay {
-            font-weight: bold;
-            min-width: 150px;
-            text-align: center;
-            font-size: 18px;
-            color: #1A1A1A;
+            background-color: #021f03;
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 1px;
-            background-color: #D1D5DB;
-            border: 1px solid #D1D5DB;
+            background-color: #ccc;
+            border: 1px solid #ccc;
             margin-bottom: 20px;
         }
 
         .calendar-cell {
-            background-color: #FFFFFF;
+            background-color: #fff;
             min-height: 80px;
             padding: 5px;
             position: relative;
-            border: 1px solid #E5E7EB;
-            color: #1A1A1A;
+            border: 1px solid #eee;
         }
 
         .calendar-cell-header {
-            background-color: #F3F4F6;
+            background-color: #f0f0f0;
             font-weight: bold;
             text-align: center;
             padding: 10px 5px;
             min-height: auto;
-            color: #1A1A1A;
         }
 
         .calendar-cell .day-number {
             font-weight: bold;
             margin-bottom: 5px;
-            color: #1A1A1A;
         }
 
         .calendar-cell .event-name {
             font-size: 10px;
-            background-color: #DCFCE7;
-            color: #166534;
-            padding: 3px 4px;
+            background-color: #c8e6c9;
+            color: #000;
+            padding: 2px 4px;
             border-radius: 3px;
             margin-bottom: 2px;
             word-wrap: break-word;
             cursor: pointer;
-            border: 1px solid #86EFAC;
+            border: none;
             width: 100%;
             text-align: left;
-            min-height: 24px;
         }
 
         .calendar-cell .event-name:hover {
-            background-color: #BBF7D0;
-        }
-
-        .calendar-cell .event-name:focus-visible {
-            outline: 3px solid #2563EB;
-            outline-offset: 1px;
+            background-color: #a5d6a7;
         }
 
         .calendar-cell.other-month {
-            color: #6B7280;
+            color: #595959;
         }
 
         .calendar-cell.other-month .event-name {
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .calendar-cell.today {
-            background-color: #FEF3C7;
-            border: 2px solid #F59E0B;
-        }
-
-        .calendar-cell.today .day-number {
-            color: #92400E;
+            background-color: #fff3e0;
+            border: 2px solid #ff9800;
         }
 
         .month-year-selector {
@@ -154,65 +129,29 @@
             flex-wrap: wrap;
         }
 
-        .month-year-selector label {
-            color: #1A1A1A;
-            font-weight: 500;
-        }
-
-        .month-year-selector select {
+        .month-year-selector select,
+        .month-year-selector button {
             padding: 8px;
-            font-size: 14px;
-            border: 2px solid #D1D5DB;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            background-color: #FFFFFF;
-            color: #1A1A1A;
-            min-height: 44px;
         }
 
-        .month-year-selector select:focus-visible {
-            outline: 3px solid #2563EB;
-            outline-offset: 1px;
-            border-color: #2563EB;
-        }
-
-        #goToMonth {
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 14px;
-            background-color: #2563EB;
-            color: #FFFFFF;
-            border: none;
-            border-radius: 4px;
-            min-height: 44px;
-            min-width: 44px;
-            font-weight: 500;
-        }
-
-        #goToMonth:hover {
-            background-color: #1D4ED8;
-        }
-
-        #goToMonth:focus-visible {
-            outline: 3px solid #2563EB;
+        button:focus-visible,
+        select:focus-visible,
+        .event-name:focus-visible,
+        .modal-close:focus-visible {
+            outline: 3px solid #005fcc;
             outline-offset: 2px;
         }
 
-        #goToMonth:active {
-            background-color: #1E40AF;
-        }
-
-        /* Responsive adjustments */
         @media (max-width: 600px) {
             .calendar-cell {
                 min-height: 60px;
                 font-size: 12px;
-                padding: 3px;
             }
 
             .calendar-cell .event-name {
                 font-size: 8px;
-                min-height: 20px;
-                padding: 2px 3px;
             }
 
             .calendar-header {
@@ -223,17 +162,8 @@
             .calendar-nav {
                 justify-content: center;
             }
-
-            .month-year-selector {
-                justify-content: center;
-            }
-
-            #currentMonthDisplay {
-                font-size: 16px;
-            }
         }
 
-        /* Modal for event details */
         .modal {
             display: none;
             position: fixed;
@@ -241,129 +171,122 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
         }
 
         .modal-content {
-            background-color: #FFFFFF;
-            margin: 10% auto;
-            padding: 24px;
-            border-radius: 8px;
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 5px;
             max-width: 500px;
             position: relative;
-            color: #1A1A1A;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
         .modal-close {
             position: absolute;
             top: 10px;
             right: 15px;
-            font-size: 28px;
+            font-size: 24px;
             cursor: pointer;
             background: none;
             border: none;
-            color: #4B5563;
-            min-height: 44px;
-            min-width: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-        }
-
-        .modal-close:hover {
-            background-color: #F3F4F6;
-        }
-
-        .modal-close:focus-visible {
-            outline: 3px solid #2563EB;
-            outline-offset: 2px;
         }
 
         .modal h3 {
             margin-top: 0;
-            color: #1A1A1A;
-            font-size: 20px;
         }
 
         .modal-body {
             margin: 15px 0;
-            color: #1A1A1A;
-            line-height: 1.6;
-        }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
         }
     </style>
-        
 </head>
-    
 
 <body>
-            <main>
-                    <h1>Commemorative Days Calendar</h1>
 
-                    <div class="calendar-header">
-                            <div class="calendar-nav">
-                                    <button id="prevMonth" aria-label="Previous month">
-                    Previous</button>
-                                    <span id="currentMonthDisplay"
-                    style="font-weight: bold; min-width: 150px; text-align: center;"
-                    aria-live="polite">Loading...</span>
-                                    <button id="nextMonth" aria-label="Next month">Next</button>
-                                </div>
-                            <div class="month-year-selector">
-                                    <label for="monthSelect">Month:</label>
-                                    <select id="monthSelect" aria-label="Select month">
-                                            <option value="0">January</option>
-                                            <option value="1">February</option>
-                                            <option value="2">March</option>
-                                            <option value="3">April</option>
-                                            <option value="4">May</option>
-                                            <option value="5">June</option>
-                                            <option value="6">July</option>
-                                            <option value="7">August</option>
-                                            <option value="8">September</option>
-                                            <option value="9">October</option>
-                                            <option value="10">November</option>
-                                            <option value="11">December</option>
-                                        </select>
-                                    <label for="yearSelect">Year:</label>
-                                    <select id="yearSelect" aria-label="Select year">
-                                            <!-- Will be populated by JavaScript -->
-                                        </select>
-                                    <button id="goToMonth" aria-label="Go to selected month and year">Go</button>
-                                </div>
-                        </div>
+    <a href="#calendarContainer" class="skip-link">
+        Skip to calendar
+    </a>
 
-                    <div id="calendarContainer" role="table" aria-label="Calendar">
-                            <!-- Calendar will be rendered here -->
-                        </div>
+    <main>
+        <h1>Commemorative Days Calendar</h1>
 
-                    <!-- Modal for event details -->
-                    <div id="eventModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
-            aria-hidden="true">
-                            <div class="modal-content">
-                                    <button class="modal-close" id="modalClose"
-                    aria-label="Close dialog">&times;</button>
-                                    <h3 id="modalTitle">Event Details</h3>
-                                    <div class="modal-body" id="modalBody">
-                                            Loading...
-                                        </div>
-                                </div>
-                        </div>
-                </main>
-        </body>
+        <div class="calendar-header">
+
+            <div class="calendar-nav">
+                <button id="prevMonth" aria-label="Go to previous month">
+                    Previous
+                </button>
+
+                <span id="currentMonthDisplay" aria-live="polite"
+                    style="font-weight:bold; min-width:150px; text-align:center;">
+                    Loading...
+                </span>
+
+                <button id="nextMonth" aria-label="Go to next month">
+                    Next
+                </button>
+            </div>
+
+            <div class="month-year-selector">
+
+                <label for="monthSelect">Month:</label>
+                <select id="monthSelect" aria-label="Select month">
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+
+                <label for="yearSelect">Year:</label>
+                <select id="yearSelect" aria-label="Select year">
+                    <!-- populated by JavaScript -->
+                </select>
+
+                <button id="goToMonth">
+                    Go
+                </button>
+
+            </div>
+        </div>
+        <div id="calendarContainer" aria-label="Commemorative Days Calendar">
+            <!-- Calendar rendered by JavaScript -->
+        </div>
+
+
+
+    </main>
+
+    <div id="eventModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
+        aria-describedby="modalBody">
+
+        <div class="modal-content">
+
+            <button class="modal-close" id="modalClose" aria-label="Close dialog">
+                &times;
+            </button>
+
+            <h3 id="modalTitle">
+                Event Details
+            </h3>
+
+            <div class="modal-body" id="modalBody">
+                Loading...
+            </div>
+
+        </div>
+    </div>
+
+</body>
 
 </html>

@@ -82,12 +82,12 @@ function renderCalendar(year, month) {
     const daysInPrevMonth = getDaysInMonth(year, month - 1);
 
     // Build the calendar grid
-    let html = '<div class="calendar-grid" role="rowgroup">';
+     let html = '<div class="calendar-grid">';
 
-    // Day headers - using proper table structure
+    // Day headers
     const dayHeaders = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     dayHeaders.forEach(day => {
-        html += `<div class="calendar-cell calendar-cell-header" role="columnheader" aria-label="${day}">${day}</div>`;
+           html += `<div class="calendar-cell calendar-cell-header">${day}</div>`;
     });
 
     // Calculate total cells needed (including padding)
@@ -98,25 +98,11 @@ function renderCalendar(year, month) {
     const isTodayMonth = today.getMonth() === month && today.getFullYear() === year;
     const todayDate = today.getDate();
 
-    // Track which row we're in for accessibility
-    let rowIndex = 0;
-
     // Render cells
     for (let i = 0; i < totalCells; i++) {
-        // Start a new row every 7 cells
-        if (i % 7 === 0) {
-            if (i > 0) {
-                html += '</div>'; // Close previous row
-            }
-            rowIndex++;
-            html += `<div role="row" aria-rowindex="${rowIndex}">`;
-        }
-
         let dayNumber;
         let isOtherMonth = false;
         let cellDate = null;
-        let monthName = getMonthName(month);
-        let yearDisplay = year;
 
         if (i < firstDay) {
             // Days from previous month
@@ -128,8 +114,6 @@ function renderCalendar(year, month) {
             const prevYear = prevMonth < 0 ? year - 1 : year;
             const prevMonthIndex = prevMonth < 0 ? 11 : prevMonth;
             cellDate = new Date(prevYear, prevMonthIndex, prevMonthDay);
-            monthName = getMonthName(prevMonthIndex);
-            yearDisplay = prevYear;
         } else if (i >= firstDay + daysInMonth) {
             // Days from next month
             const nextMonthDay = i - (firstDay + daysInMonth) + 1;
@@ -140,8 +124,6 @@ function renderCalendar(year, month) {
             const nextYear = nextMonth > 11 ? year + 1 : year;
             const nextMonthIndex = nextMonth > 11 ? 0 : nextMonth;
             cellDate = new Date(nextYear, nextMonthIndex, nextMonthDay);
-            monthName = getMonthName(nextMonthIndex);
-            yearDisplay = nextYear;
         } else {
             // Current month days
             dayNumber = i - firstDay + 1;
@@ -154,31 +136,21 @@ function renderCalendar(year, month) {
         // Check if this cell has events
         const dayEvents = events[dayNumber] || [];
 
-        // Build cell - using role="cell" for accessibility
+        // Build cell
         const cellClass = `calendar-cell${isOtherMonth ? ' other-month' : ''}${isToday ? ' today' : ''}`;
-        const ariaLabel = isOtherMonth ?
-            `${monthName} ${dayNumber}, ${yearDisplay}` :
-            `${monthName} ${dayNumber}, ${year}`;
+        html += `<div class="${cellClass}">`;  
+        html += `<div class="day-number">${dayNumber}</div>`;
 
-        html += `<div class="${cellClass}" role="cell" aria-label="${ariaLabel}">`;
-        html += `<div class="day-number" aria-hidden="true">${dayNumber}</div>`;
-
-        // Add events as buttons with proper ARIA labels
-        dayEvents.forEach((event, index) => {
+        // Add events as buttons (for accessibility)
+        dayEvents.forEach(event => {
             const dateStr = cellDate ? formatDateYYYY_MM_DD(cellDate) : '';
-            const eventId = `event-${Date.now()}-${index}`;
-            html += `<button class="event-name" id="${eventId}" data-event="${encodeURIComponent(event.name)}" data-date="${dateStr}" data-description="${encodeURIComponent(event.descriptionURL)}" aria-label="${event.name} on ${dateStr}">${event.name}</button>`;
+            html += `<button class="event-name" data-event="${encodeURIComponent(event.name)}" data-date="${dateStr}" data-description="${encodeURIComponent(event.descriptionURL)}" aria-label="${event.name} on ${dateStr}">${event.name}</button>`;
         });
 
         html += '</div>';
     }
 
-    // Close the last row
-    if (totalCells > 0) {
-        html += '</div>';
-    }
-    html += '</div>'; // Close rowgroup
-
+    html += '</div>';
     container.innerHTML = html;
 
     // Add event listeners to event buttons
@@ -197,11 +169,6 @@ async function showEventDetails(name, date, descriptionURL) {
     modalTitle.textContent = name;
     modalBody.innerHTML = `<p><strong>Date:</strong> ${date}</p><p><em>Loading description...</em></p>`;
     eventModal.style.display = 'block';
-    eventModal.setAttribute('aria-hidden', 'false');
-    // Focus trap - focus the modal
-    modalClose.focus();
-    // Prevent body scroll
-    document.body.style.overflow = 'hidden';
 
     try {
         const response = await fetch(descriptionURL);
@@ -219,14 +186,6 @@ async function showEventDetails(name, date, descriptionURL) {
 // Close modal
 function closeModal() {
     eventModal.style.display = 'none';
-    eventModal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-    // Return focus to the button that opened the modal
-    const eventButtons = document.querySelectorAll('.event-name');
-    if (eventButtons.length > 0) {
-        // Find the last focused element or focus the first event button
-        eventButtons[0].focus();
-    }
 }
 
 // Navigation functions
@@ -265,20 +224,8 @@ goToMonthBtn.addEventListener('click', goToSelectedMonth);
 
 // Keyboard navigation
 document.addEventListener('keydown', function(e) {
-    // Close modal on Escape
     if (e.key === 'Escape' && eventModal.style.display === 'block') {
         closeModal();
-        e.preventDefault();
-    }
-
-    // Keyboard shortcuts for navigation
-    if (e.key === 'ArrowLeft' && e.ctrlKey) {
-        e.preventDefault();
-        goToPreviousMonth();
-    }
-    if (e.key === 'ArrowRight' && e.ctrlKey) {
-        e.preventDefault();
-        goToNextMonth();
     }
 });
 
@@ -293,30 +240,8 @@ modalClose.addEventListener('click', closeModal);
 
 // Initialize
 populateYearSelect();
-
-// Set initial focus to the calendar after rendering
 renderCalendar(currentYear, currentMonth);
-
-// After render, set focus management for the calendar
-setTimeout(() => {
-    const firstDay = container.querySelector('.calendar-cell:not(.calendar-cell-header)');
-    if (firstDay) {
-        firstDay.setAttribute('tabindex', '0');
-    }
-}, 100);
 
 // Accessibility: Set aria-live for calendar updates
 container.setAttribute('aria-live', 'polite');
 container.setAttribute('aria-atomic', 'true');
-
-// Add skip link functionality (tab to first interactive element)
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Tab' && !e.shiftKey) {
-        const activeElement = document.activeElement;
-        if (activeElement === document.body || activeElement === document.documentElement) {
-            // If nothing is focused, focus the first interactive element (previous button)
-            prevMonthBtn.focus();
-            e.preventDefault();
-        }
-    }
-});
